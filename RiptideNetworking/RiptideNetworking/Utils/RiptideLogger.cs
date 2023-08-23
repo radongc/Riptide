@@ -38,6 +38,8 @@ namespace Riptide.Utils
 
         /// <summary>Log methods, accessible by their <see cref="LogType"/></summary>
         private static readonly Dictionary<LogType, LogMethod> logMethods = new Dictionary<LogType, LogMethod>(4);
+        /// <summary>Log every time a net message is handled?</summary>
+        private static bool includeDebugMsgHandlerLogs;
         /// <summary>Whether or not to include timestamps when logging messages.</summary>
         private static bool includeTimestamps;
         /// <summary>The format to use for timestamps.</summary>
@@ -45,17 +47,19 @@ namespace Riptide.Utils
 
         /// <summary>Initializes <see cref="RiptideLogger"/> with all log types enabled.</summary>
         /// <param name="logMethod">The method to use when logging all types of messages.</param>
+        /// <param name="includeDebugMsgHandlerLogs">Log every time a network message is handled?</param>
         /// <param name="includeTimestamps">Whether or not to include timestamps when logging messages.</param>
         /// <param name="timestampFormat">The format to use for timestamps.</param>
-        public static void Initialize(LogMethod logMethod, bool includeTimestamps, string timestampFormat = "HH:mm:ss") => Initialize(logMethod, logMethod, logMethod, logMethod, includeTimestamps, timestampFormat);
+        public static void Initialize(LogMethod logMethod, bool includeDebugMsgHandlerLogs, bool includeTimestamps, string timestampFormat = "HH:mm:ss") => Initialize(logMethod, logMethod, logMethod, logMethod, includeDebugMsgHandlerLogs, includeTimestamps, timestampFormat);
         /// <summary>Initializes <see cref="RiptideLogger"/> with the supplied log methods.</summary>
         /// <param name="debugMethod">The method to use when logging debug messages. Set to <see langword="null"/> to disable debug logs.</param>
         /// <param name="infoMethod">The method to use when logging info messages. Set to <see langword="null"/> to disable info logs.</param>
         /// <param name="warningMethod">The method to use when logging warning messages. Set to <see langword="null"/> to disable warning logs.</param>
         /// <param name="errorMethod">The method to use when logging error messages. Set to <see langword="null"/> to disable error logs.</param>
+        /// <param name="includeDebugMsgHandlerLogs">Log every time a network message is handled?</param>
         /// <param name="includeTimestamps">Whether or not to include timestamps when logging messages.</param>
         /// <param name="timestampFormat">The format to use for timestamps.</param>
-        public static void Initialize(LogMethod debugMethod, LogMethod infoMethod, LogMethod warningMethod, LogMethod errorMethod, bool includeTimestamps, string timestampFormat = "HH:mm:ss")
+        public static void Initialize(LogMethod debugMethod, LogMethod infoMethod, LogMethod warningMethod, LogMethod errorMethod, bool includeDebugMsgHandlerLogs, bool includeTimestamps, string timestampFormat = "HH:mm:ss")
         {
             logMethods.Clear();
 
@@ -68,6 +72,7 @@ namespace Riptide.Utils
             if (errorMethod != null)
                 logMethods.Add(LogType.Error, errorMethod);
 
+            RiptideLogger.includeDebugMsgHandlerLogs = includeDebugMsgHandlerLogs;
             RiptideLogger.includeTimestamps = includeTimestamps;
             RiptideLogger.timestampFormat = timestampFormat;
         }
@@ -113,6 +118,13 @@ namespace Riptide.Utils
                 else
                     logMethod($"({logName}): {message}");
             }
+        }
+
+        /// <summary>Logs a message handler event if enabled.</summary>
+        public static void LogHandlerMessage(LogType logType, string logName, string message)
+        {
+            if (includeDebugMsgHandlerLogs)
+                Log(logType, logName, message);
         }
 
         /// <summary>Converts a <see cref="DateTime"/> object to a formatted timestamp string.</summary>
