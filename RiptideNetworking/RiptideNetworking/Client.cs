@@ -380,7 +380,7 @@ namespace Riptide
             {
                 if (messageHandlers.TryGetValue(messageId, out MessageHandler messageHandler))
                 {
-                    RiptideLogger.LogHandlerMessage(LogType.Debug, LogName, $"Handling message ID {messageId}.");
+                    RiptideLogger.LogHandlerMessage(LogType.Debug, LogName, $"Invoking handler '{messageHandler.GetMethodInfo().Name}' for message ID {messageId}.");
                     messageHandler(message);
                 }
                 else
