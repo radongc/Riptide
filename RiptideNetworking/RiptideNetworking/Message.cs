@@ -76,7 +76,7 @@ namespace Riptide
         /// <summary>How many more bytes can be added to the message.</summary>
         public int UnwrittenLength => Bytes.Length - writePos;
         /// <summary>The message's data.</summary>
-        internal byte[] Bytes { get; private set; }
+        public byte[] Bytes { get; private set; }
 
         /// <summary>The position in the byte array that the next bytes will be written to.</summary>
         private int writePos;
