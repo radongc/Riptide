@@ -67,6 +67,7 @@ namespace Riptide
         private readonly List<Connection> timedOutClients;
         /// <summary>Methods used to handle messages, accessible by their corresponding message IDs.</summary>
         private Dictionary<ushort, MessageHandler> messageHandlers;
+        private Dictionary<ushort, string> messageHandlerMethodLogNames;
         /// <summary>The underlying transport's server that is used for sending and receiving data.</summary>
         private IServer transport;
         /// <summary>All currently unused client IDs.</summary>
@@ -145,6 +146,8 @@ namespace Riptide
             MethodInfo[] methods = FindMessageHandlers();
 
             messageHandlers = new Dictionary<ushort, MessageHandler>(methods.Length);
+            messageHandlerMethodLogNames = new Dictionary<ushort, string>();
+
             foreach (MethodInfo method in methods)
             {
                 MessageHandlerAttribute attribute = method.GetCustomAttribute<MessageHandlerAttribute>();
@@ -164,7 +167,12 @@ namespace Riptide
                         throw new DuplicateHandlerException(attribute.MessageId, method, otherMethodWithId);
                     }
                     else
+                    {
                         messageHandlers.Add(attribute.MessageId, (MessageHandler)serverMessageHandler);
+
+                        if (attribute.DebugLogHandler)
+                            messageHandlerMethodLogNames.Add(attribute.MessageId, serverMessageHandler.GetMethodInfo().Name);
+                    }
                 }
                 else
                 {
@@ -563,7 +571,9 @@ namespace Riptide
             {
                 if (messageHandlers.TryGetValue(messageId, out MessageHandler messageHandler))
                 {
-                    RiptideLogger.LogHandlerMessage(LogType.Debug, LogName, $"Invoking handler '{messageHandler.GetMethodInfo().Name}' for message ID {messageId} from client ID {fromConnection.Id}.");
+                    if (messageHandlerMethodLogNames.ContainsKey(messageId))
+                        RiptideLogger.LogHandlerMessage(LogType.Debug, LogName, $"Invoking handler '{messageHandlerMethodLogNames[messageId]}' for message ID {messageId} from client ID {fromConnection.Id}.");
+
                     messageHandler(fromConnection.Id, message);
                 }
                 else

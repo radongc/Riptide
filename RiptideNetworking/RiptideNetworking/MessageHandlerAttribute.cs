@@ -20,7 +20,7 @@ namespace Riptide
     ///   </para>
     ///   <para>
     ///     If you want a <see cref="Server"/> or <see cref="Client"/> to only use a subset of all message handler methods, you can do so by setting up
-    ///     custom message handler groups. Simply set the group ID in the <see cref="MessageHandlerAttribute(ushort, byte)"/> constructor and pass the
+    ///     custom message handler groups. Simply set the group ID in the <see cref="MessageHandlerAttribute(ushort, byte, bool)"/> constructor and pass the
     ///     same value to the <see cref="Server.Start(ushort, ushort, byte, bool)"/> or <see cref="Client.Connect(string, int, byte, Message, bool)"/> method. This
     ///     will make that <see cref="Server"/> or <see cref="Client"/> only use message handlers which have the same group ID.
     ///   </para>
@@ -32,19 +32,23 @@ namespace Riptide
         public readonly ushort MessageId;
         /// <summary>The ID of the group of message handlers which this method belongs to.</summary>
         public readonly byte GroupId;
+        /// <summary>Whether or not to include this handler in debug logging of message handler invokes.</summary>
+        public readonly bool DebugLogHandler;
 
         /// <summary>Initializes a new instance of the <see cref="MessageHandlerAttribute"/> class with the <paramref name="messageId"/> and <paramref name="groupId"/> values.</summary>
         /// <param name="messageId">The ID of the message type which this method is meant to handle.</param>
         /// <param name="groupId">The ID of the group of message handlers which this method belongs to.</param>
+        /// <param name="debugLogHandler">Whether or not to include this method in debug console logging on message handle.</param>
         /// <remarks>
         ///   <see cref="Server"/>s will only use this method if its signature matches the <see cref="Server.MessageHandler"/> signature.
         ///   <see cref="Client"/>s will only use this method if its signature matches the <see cref="Client.MessageHandler"/> signature.
         ///   This method will be ignored if its signature matches neither of the valid message handler signatures.
         /// </remarks>
-        public MessageHandlerAttribute(ushort messageId, byte groupId = 0)
+        public MessageHandlerAttribute(ushort messageId, byte groupId = 0, bool debugLogHandler = true)
         {
             MessageId = messageId;
             GroupId = groupId;
+            DebugLogHandler = debugLogHandler;
         }
     }
 }

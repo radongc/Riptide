@@ -68,6 +68,7 @@ namespace Riptide
         private int maxConnectionAttempts;
         /// <inheritdoc cref="Server.messageHandlers"/>
         private Dictionary<ushort, MessageHandler> messageHandlers;
+        private Dictionary<ushort, string> messageHandlerMethodLogNames;
         /// <summary>The underlying transport's client that is used for sending and receiving data.</summary>
         private IClient transport;
         /// <summary>Custom data to include when connecting.</summary>
@@ -163,6 +164,8 @@ namespace Riptide
             MethodInfo[] methods = FindMessageHandlers();
 
             messageHandlers = new Dictionary<ushort, MessageHandler>(methods.Length);
+            messageHandlerMethodLogNames = new Dictionary<ushort, string>();
+
             foreach (MethodInfo method in methods)
             {
                 MessageHandlerAttribute attribute = method.GetCustomAttribute<MessageHandlerAttribute>();
@@ -182,7 +185,12 @@ namespace Riptide
                         throw new DuplicateHandlerException(attribute.MessageId, method, otherMethodWithId);
                     }
                     else
+                    {
                         messageHandlers.Add(attribute.MessageId, (MessageHandler)clientMessageHandler);
+
+                        if (attribute.DebugLogHandler)
+                            messageHandlerMethodLogNames.Add(attribute.MessageId, clientMessageHandler.GetMethodInfo().Name);
+                    }
                 }
                 else
                 {
@@ -380,7 +388,9 @@ namespace Riptide
             {
                 if (messageHandlers.TryGetValue(messageId, out MessageHandler messageHandler))
                 {
-                    RiptideLogger.LogHandlerMessage(LogType.Debug, LogName, $"Invoking handler '{messageHandler.GetMethodInfo().Name}' for message ID {messageId}.");
+                    if (messageHandlerMethodLogNames.ContainsKey(messageId))
+                        RiptideLogger.LogHandlerMessage(LogType.Debug, LogName, $"Invoking handler '{messageHandlerMethodLogNames[messageId]}' for message ID {messageId}.");
+                    
                     messageHandler(message);
                 }
                 else
